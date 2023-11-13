@@ -1,5 +1,17 @@
 """Functions to connect to a document store and fetch documents from it."""
-CONFIG = {"MONGO_DATABASE": "fsdl-dev", "MONGO_COLLECTION": "ask-fsdl"}
+#CONFIG = {"MONGO_DATABASE": "fsdl-dev", "MONGO_COLLECTION": "ask-fsdl"}
+CONFIG = {"MONGO_DATABASE": "fsdl", "MONGO_COLLECTION": "ask-fsdl", "MONGODB_HOST":"fsdl.1jw1q9u.mongodb.net",
+          "MONGODB_USER":"suhaspillai", "MONGODB_PASSWORD":"Mongodb2023"}
+
+# def get_environ_variables():
+#     environ={}
+#     with open('/root/.env', 'r') as f_r:
+#         for line in f_r:
+#             if '=' in line:
+#                 l_split = line.strip().split('=')
+#                 if l_split[0] not in environ:
+#                     environ[l_split[0]] = l_split[1]
+#     return environ
 
 
 def get_documents(collection=None, db=None, client=None, query=None):
@@ -73,13 +85,13 @@ def connect(user=None, password=None, uri=None):
 
     import pymongo
 
-    mongodb_user = user or os.environ["MONGODB_USER"]
-    mongodb_user = urllib.parse.quote_plus(mongodb_user)
+    mongodb_user = user or CONFIG["MONGODB_USER"] or os.environ["MONGODB_USER"] 
+    mongodb_user = urllib.parse.quote_plus(mongodb_user) 
 
-    mongodb_password = password or os.environ["MONGODB_PASSWORD"]
+    mongodb_password = password or CONFIG["MONGODB_PASSWORD"] or os.environ["MONGODB_PASSWORD"] 
     mongodb_password = urllib.parse.quote_plus(mongodb_password)
 
-    mongodb_host = uri or os.environ["MONGODB_HOST"]
+    mongodb_host = uri or CONFIG["MONGODB_HOST"] or os.environ["MONGODB_HOST"] 
 
     connection_string = f"mongodb+srv://{mongodb_user}:{mongodb_password}@{mongodb_host}/?retryWrites=true&w=majority"
 

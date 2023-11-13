@@ -66,8 +66,8 @@ def to_documents(lecture, website_url, md_url):
     markdown_url = f"{md_url}/{title_slug}/index.md"
     website_url = f"{website_url}/{title_slug}"
 
-    text = get_text_from(markdown_url)
-    headings, heading_slugs = get_target_headings_and_slugs(text)
+    text = get_text_from.local(markdown_url)
+    headings, heading_slugs = get_target_headings_and_slugs.local(text)
 
     subtexts = split_by_headings(text, headings)
     headings, heading_slugs = [""] + headings, [""] + heading_slugs

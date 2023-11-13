@@ -28,7 +28,7 @@ def main(json_path="data/videos.json", collection=None, db=None):
 
     with open(json_path) as f:
         video_infos = json.load(f)
-
+    print(video_infos)
     documents = (
         etl.shared.unchunk(  # each video creates multiple documents, so we flatten
             extract_subtitles.map(video_infos, return_exceptions=True)
@@ -48,7 +48,9 @@ def main(json_path="data/videos.json", collection=None, db=None):
     retries=modal.Retries(max_retries=3, backoff_coefficient=2.0, initial_delay=5.0)
 )
 def extract_subtitles(video_info):
+    print(video_info)
     video_id, video_title = video_info["id"], video_info["title"]
+    print(video_id, video_title) 
     subtitles = get_transcript(video_id)
     chapters = get_chapters(video_id)
     chapters = add_transcript(chapters, subtitles)

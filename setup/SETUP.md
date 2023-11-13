@@ -293,6 +293,9 @@ We use a vector index to find the most similar documents to a given query.
 
 You can create it with
 
+# This will first load the embedding model from Langchain, the call FAISS (Facebook AI Similarity Search (Faiss)).
+For each document it will create an embedding using the embedding model , then store them in FAISS object
+
 ```bash
 make vector-index
 ```
