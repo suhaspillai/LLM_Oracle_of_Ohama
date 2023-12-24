@@ -55,7 +55,7 @@ def tokenize(max_length, tokenizer, feature):
 
 
 @stub.function(mounts=[modal.Mount.from_local_dir("/home/suhaspillai/Suhas/git/llms/ask-fsdl/fin_llm/src/",
- remote_path="/root/")])
+ remote_path="/root/")], gpu="A100", timeout=30000)
 def load_dataset():
   from transformers import (
       AutoModelForCausalLM,
@@ -83,6 +83,8 @@ def load_dataset():
   from functools import partial
   import wandb
   from rouge_score import rouge_scorer
+  from tqdm import tqdm
+  import re
 
 
 
@@ -101,7 +103,7 @@ def load_dataset():
       
 
     def on_evaluate(self, args, state: TrainerState, control: TrainerControl, **kwargs):
-        
+       
       if state.epoch is None or state.epoch + 1 < self.ignore_until_epoch:
         return
             
@@ -130,7 +132,7 @@ def load_dataset():
           reference_texts.append(gt)
 
         metrics = calc_metrics(reference_texts, generated_texts)
-            
+        print("Metrics ---- {}".format(metrics))
         # Ensure wandb is initialized
         if wandb.run is None:
           wandb.init(entity='suhas-callin')
@@ -138,7 +140,7 @@ def load_dataset():
         wandb.log(metrics, step=state.global_step)
         torch.cuda.empty_cache()   
   
-
+  
   model_name = "NousResearch/Llama-2-7b-chat-hf"
   tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
   tokenizer.pad_token = tokenizer.eos_token
@@ -162,7 +164,7 @@ def load_dataset():
   batch_size = 1 
   gradient_accumulation_steps = 16 
   learning_rate = 5e-5 
-  num_epochs = 5 
+  num_epochs = 1 
   log_interval = 10 
   warmup_ratio = 0.03 
   scheduler = 'constant'
@@ -171,8 +173,8 @@ def load_dataset():
   weight_decay=0.01 
   current_time = datetime.now()
   formatted_time = current_time.strftime('%Y%m%d%H%M')
-  num_workers=8
-
+  num_workers=1
+  SAVE_MODEL_PATH=MODEL_PATH+'/finetuned_models/'+formatted_time
   training_args = TrainingArguments(
         output_dir='/root/finetuned_models/{run_name}_{formatted_time}', # 保存位置
         logging_steps=log_interval,
@@ -189,13 +191,15 @@ def load_dataset():
         eval_steps=eval_steps,
         evaluation_strategy=evaluation_strategy,
         remove_unused_columns=False,
-        report_to='wandb',
-        run_name=run_name
+        run_name=run_name,
+        report_to='wandb'
     )
+  
   #MODEL_PATH = "/model"
   #model = LlamaForCausalLM.from_pretrained(model_name)
   model = LlamaForCausalLM.from_pretrained(MODEL_PATH) 
   #model.save_pretrained(MODEL_PATH)  
+  #model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
   model.gradient_checkpointing_enable()
   model.enable_input_require_grads()
   model.is_parallelizable = True
@@ -251,7 +255,8 @@ def load_dataset():
   print("----- Finished training the model -----")
 
   # save model
-  model.save_pretrained(MODAL_PATH)
+
+  model.save_pretrained(SAVE_MODEL_PATH)
 
   
 def format_dolly(sample):
