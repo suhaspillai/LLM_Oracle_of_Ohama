@@ -78,3 +78,17 @@ modal config set-environment prod
 - db.collections() -  Gives the collections in the dataase
 - db['<collectionname>'].find() - This will list all that is tored in the collections
 
+
+# Error: Configuration file not found
+- Makefile:93: recipe for target 'environment' failed
+- make: *** [environment] Error 1
+- Set the environment variable 
+	export ENV=prod
+
+	# Realted to Transformer library 
+	-- If you get the following erro 
+	ImportError: cannot import name 'LlamaConfig' from 'transformers'
+	Then do a pip install from the clone directly
+	pip install git+https://github.com/huggingface/transformers.git
+
+

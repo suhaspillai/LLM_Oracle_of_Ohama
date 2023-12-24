@@ -52,6 +52,7 @@ def extract_subtitles(video_info):
     video_id, video_title = video_info["id"], video_info["title"]
     print(video_id, video_title) 
     subtitles = get_transcript(video_id)
+    print(subtitles)
     chapters = get_chapters(video_id)
     chapters = add_transcript(chapters, subtitles)
 

@@ -238,7 +238,7 @@ def prep_documents_for_vector_storage(documents):
     },
 )
 def cli(query: str):
-    answer = qanda(query, with_logging=False)
+    answer = qanda.local(query, with_logging=False)
     pretty_log("🦜 ANSWER 🦜")
     print(answer)
 
