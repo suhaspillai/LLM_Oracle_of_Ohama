@@ -2,8 +2,11 @@ import io
 
 import modal
 
+
 from common import download_models, MODEL_PATH
 from utils import calc_metrics
+
+
 
 llm_train_image=(modal.Image.debian_slim().pip_install(
         "datasets",
@@ -24,7 +27,8 @@ llm_train_image=(modal.Image.debian_slim().pip_install(
     ) 
 
 stub = modal.Stub("train_llm", image=llm_train_image)
-
+vol =  modal.NetworkFileSystem.persisted("fin_llama")
+model_store_path = "/vol/models"
 
 def tokenize(max_length, tokenizer, feature):
     
@@ -55,7 +59,7 @@ def tokenize(max_length, tokenizer, feature):
 
 
 @stub.function(mounts=[modal.Mount.from_local_dir("/home/suhaspillai/Suhas/git/llms/ask-fsdl/fin_llm/src/",
- remote_path="/root/")], gpu="A100", timeout=30000)
+ remote_path="/root/")], gpu="A100", timeout=30000, network_file_systems={model_store_path: vol})
 def load_dataset():
   from transformers import (
       AutoModelForCausalLM,
@@ -174,9 +178,9 @@ def load_dataset():
   current_time = datetime.now()
   formatted_time = current_time.strftime('%Y%m%d%H%M')
   num_workers=1
-  SAVE_MODEL_PATH=MODEL_PATH+'/finetuned_models/'+formatted_time
+  SAVE_MODEL_PATH=model_store_path+'/'+run_name+'_'+formatted_time
   training_args = TrainingArguments(
-        output_dir='/root/finetuned_models/{run_name}_{formatted_time}', # 保存位置
+        output_dir=SAVE_MODEL_PATH, # 保存位置
         logging_steps=log_interval,
         num_train_epochs=num_epochs,
         per_device_train_batch_size=batch_size,
@@ -257,6 +261,7 @@ def load_dataset():
   # save model
 
   model.save_pretrained(SAVE_MODEL_PATH)
+  
 
   
 def format_dolly(sample):
