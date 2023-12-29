@@ -25,6 +25,7 @@ def main():
   parser.add_argument('--end_date', default='2023-12-26', help='end date for downloading news articles e.g yyyy-MM-DD')
   parser.add_argument('--env_file', default='.env', help='file that store keys for openai, huggingface, finnhub_key etc')
   parser.add_argument('--list_ticker_symbol', default="MSFT", help='Different stock ticker symbols')
+  parser.add_argument('--ds_fname', default='hf_datset', help='name of the dataset to save')
   args = parser.parse_args()
   SYSTEM_PROMPT = "You are a seasoned stock market analyst. Your task is to list the positive developments and potential concerns for companies based on relevant news and basic financials from the past weeks, then provide an analysis and prediction for the companies' stock price movement for the upcoming week. " \
     "Your answer format should be as follows:\n\n[Positive Developments]:\n1. ...\n\n[Potential Concerns]:\n1. ...\n\n[Prediction & Analysis]:\n...\n"
@@ -42,9 +43,6 @@ def main():
   		api_keys[val[0]] = val[1]
   		
 
-  # openai_key='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'
-  # finnhub_key='clmijk9r01qjj8i8g26gclmijk9r01qjj8i8g270'
-
   DATA_DIR = f"./{START_DATE}_{END_DATE}"
   os.makedirs(DATA_DIR, exist_ok=True)
   finnhub_client = finnhub.Client(api_key=api_keys["FINNHUB_KEY"])
@@ -61,9 +59,10 @@ def main():
 
 
   print("=========== Reformat data for llama-2 finetuning ===========")
-  create_dataset(DATA_DIR, START_DATE, END_DATE, ticker_sym, SYSTEM_PROMPT,
+  dataset_hf = create_dataset(DATA_DIR, START_DATE, END_DATE, ticker_sym, SYSTEM_PROMPT,
   	             B_INST, E_INST, B_SYS, E_SYS, train_ratio=0.8,
   	             with_basics=True)
+  dataset_hf.save_to_disk(args.ds_fname)
 
 if __name__ == '__main__':
   main()
