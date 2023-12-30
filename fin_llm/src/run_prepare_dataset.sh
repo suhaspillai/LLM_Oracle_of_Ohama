@@ -1,8 +1,17 @@
-#!/bin/bash
 
 TICKER_SYMBOL="MSFT, AAPL, ASML, NVDA, TSLA, TSM,GOOGL, AMD, META, AMZN"
 START_DATE='2023-01-01'
 END_DATE='2023-12-26'
+DS_FNAME='dec_28_stocks_10'
 
-python3 prepare_data.py --list_ticker_symbol "MSFT, AAPL, ASML, NVDA, TSLA, TSM,GOOGL, AMD, META, AMZN" --start_date $START_DATE --end_date $END_DATE 
+# TICKER_SYMBOL="MSFT"
+# START_DATE='2023-06-01'
+# END_DATE='2023-12-26'
+
+
+
+python3 prepare_data.py --list_ticker_symbol "MSFT, AAPL, ASML, NVDA, TSLA, TSM,GOOGL, AMD, META, AMZN" --start_date $START_DATE --end_date $END_DATE --ds_fname $DS_FNAME
+
+
+
 

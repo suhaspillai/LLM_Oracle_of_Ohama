@@ -62,6 +62,7 @@ def run_inference():
   from tqdm import tqdm
   import re
   import pickle
+  from tqdm import tqdm
 
 
 
@@ -97,20 +98,34 @@ def run_inference():
       device_map="auto",
   )
   base_model.model_parallel=True
-  checkpoint_dir = model_store_path+'/'+'test_llm_training_202312250053/checkpoint-4'
-  model = PeftModel.from_pretrained(base_model, checkpoint_dir)
+  ft_model_dr='test_llm_training_dec_28_202312290712'
+  flag_ft=True
+  counter=10
+  
+  if flag_ft:
+    
+    checkpoint_no='checkpoint-66'
+    checkpoint_dir = os.path.join(model_store_path, ft_model_dr, checkpoint_no)
+    model = PeftModel.from_pretrained(base_model, checkpoint_dir)
+    print("=============  Finetuned model  =============")
+    fname_answer='answer_ft.txt'
+  else:
+
+    model = base_model
+    fname_answer='answer_base.txt'
+    print("=============  Base model  =============")
   model = model.eval()
   print(model)
   tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
   tokenizer.pad_token = tokenizer.eos_token
   tokenizer.padding_side = "right"
-
-  test_dataset=datasets.load_from_disk('/root/fingpt-forecaster-dow30v3-20230831-20231208-llama')['test']
-
-
+  dataset_name = 'dec_28_stocks_10'
+  test_dataset=datasets.load_from_disk('/root/'+dataset_name)['test']
+  range_len = min(counter, len(test_dataset)) 
+  
   answers, gts = [], []
-
-  for i in range(len(test_dataset)):
+  
+  for i in tqdm(range(range_len)):
       prompt = test_dataset[i]['prompt']
       output = test_demo(model, tokenizer, prompt)
       answer = re.sub(r'.*\[/INST\]\s*', '', output, flags=re.DOTALL)
@@ -124,11 +139,12 @@ def run_inference():
       print('\n===============\n')
       answers.append(answer)
       gts.append(gt)
+      
 
-  with open(model_store_path+'/'+'answers.txt', 'wb') as f_a:
+  with open(os.path.join(model_store_path, ft_model_dr, fname_answer), 'wb') as f_a:
     pickle.dump(answers, f_a)
 
-  with open(model_store_path+'/'+'gt.txt', 'wb') as f_g:
+  with open(os.path.join(model_store_path, ft_model_dr, 'gt.txt'), 'wb') as f_g:
     pickle.dump(gts, f_g)
   
 

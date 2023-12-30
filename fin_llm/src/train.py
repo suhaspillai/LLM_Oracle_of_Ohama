@@ -150,8 +150,13 @@ def load_dataset():
   tokenizer.pad_token = tokenizer.eos_token
   tokenizer.padding_side = "right"
   max_length = 512
-  dataset=datasets.load_from_disk('/root/fingpt-forecaster-dow30v3-20230831-20231208-llama')
-  eval_dataset = dataset['train'].shuffle(seed=1234).select(range(int(0.1*len(dataset['train']))))
+  dataset_name = 'dec_28_stocks_10'
+  train_val_split_percent=0.1
+  dataset=datasets.load_from_disk('/root/'+dataset_name)
+  #eval_dataset = dataset['train'].shuffle(seed=1234).select(range(int(0.1*len(dataset['train']))))
+  dataset = dataset['train'].shuffle(seed=1234).train_test_split(test_size=train_val_split_percent)
+  print("Number of training samples {} ".format(len(dataset['train'])))
+  print("Number of validation samples {} ".format(len(dataset['test'])))
   #dataset=datasets.load_from_disk('/home/suhaspillai/Suhas/git/llms/ask-fsdl/fin_llm/src/fingpt-forecaster-dow30v3-20230831-20231208-llama') 
   # This will create dataset in the form of input_ids and label_ids, which is what Trainer() needs 
   tokenized_dataset = dataset.map(partial(tokenize, max_length, tokenizer))
@@ -162,13 +167,13 @@ def load_dataset():
   # eval_dataset = original_dataset['test'].shuffle(seed=42).select(range(3))
   # dataset = original_dataset.map(template_dataset)
   # print(dataset['test']['text'][0])
-  run_name = 'test_llm_training'
-  dataset = 'fingpt-forecaster-dow30v3-20230831-20231208-llama'
+  run_name = 'test_llm_training_dec_28'
+  
   max_length = 4096 
   batch_size = 1 
   gradient_accumulation_steps = 16 
   learning_rate = 5e-5 
-  num_epochs = 1 
+  num_epochs = 5 
   log_interval = 10 
   warmup_ratio = 0.03 
   scheduler = 'constant'
@@ -241,7 +246,7 @@ def load_dataset():
       ),
       callbacks=[
         GenerationEvalCallback(
-          eval_dataset=eval_dataset,
+          eval_dataset=dataset['test'],
           ignore_until_epoch=round(0.3 * num_epochs)
           )
         ]
@@ -262,27 +267,7 @@ def load_dataset():
 
   model.save_pretrained(SAVE_MODEL_PATH)
   
-
-  
-def format_dolly(sample):
-    instruction = f"<s>{sample['prompt']}"
-    response = f" [{sample['answer']}"
-    # join all the parts together
-    prompt = "".join([i for i in [instruction, response ] if i is not None])
-    return prompt
-
-
-def template_dataset(sample):
-    #print(sample)
-    sample["text"] = f"{format_dolly(sample)}</s>"
-    return sample
-
-
-
-	
-	#original_dataset = datasets.DatasetDict({'train': dataset['train'], 'test': dataset['test']})
-	#print(original_dataset)
-
+ 
 
 @stub.local_entrypoint()
 def main():
